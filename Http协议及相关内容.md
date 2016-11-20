@@ -27,7 +27,7 @@
  * 无连接
  * 无状态
  
- **Request Headers和Response Headers**
+**Request Headers和Response Headers**
  
  ![常用HTTP响应头和请求头信息对照表](http://tools.jb51.net/table/http_header)
  
