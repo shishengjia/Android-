@@ -29,6 +29,8 @@
  
  **Request Headers和Response Headers**
  
+ ![常用HTTP响应头和请求头信息对照表](http://tools.jb51.net/table/http_header)
+ 
  ![image](https://github.com/shishengjia/Android-NetworkArchitecture-Design/blob/master/Headers.jpg)
  
  其中Status Code:200 表示成功
@@ -40,7 +42,28 @@
   * 400-499 客户端错误
   * 500-599 服务器错误
  
- User-Agent标明设备信息，浏览器信息等
+ User-Agent等其他请求头都可以自定义，完成特定的功能
+ 
+ ```java
+ public class HeadHttp {
+    public static void main(String args[]) {
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder().
+                url("https://www.baidu.com").addHeader("User-Agent", "from shishengjia").build();
+        try {
+            Response response = client.newCall(request).execute();
+            Headers headers = response.headers();
+            if(response.isSuccessful()){
+                for(int i=0;i<headers.size();i++)
+                    System.out.println(headers.name(i)+":"+headers.value(i));//打印响应头
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+ ```
+ 这个示例中通过addHeader()方法可以自定义请求头。
  
 **Http同步请求和异步请求**
  
