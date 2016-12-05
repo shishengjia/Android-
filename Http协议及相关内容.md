@@ -1,12 +1,5 @@
 #Http协议
 ####超文本传输协议（HyperText Transfer Protocol)是互联网上应用最为广泛的一种网络协议。
-
-##目录
- * [Http版本区别](#Http版本区别)
- * [Http请求方式](#Http请求方式)
- * [Http协议特点](#Http协议特点)
- * [Http同步请求和异步请求](#Http同步请求和异步请求)
- * [Http缓存机制](#Http缓存机制)
  
 Http版本区别
 ---------------
@@ -30,15 +23,14 @@ Http请求方式
  
 Http协议特点
 --------------
- * 支持C/S模式
- * 简单快速:客户向服务器请求服务时，只需传送请求方法和路径。
- * 灵活:HTTP允许传输任意类型的数据对象
- * 无连接
- * 无状态
+* 支持C/S模式
+* 简单快速:客户向服务器请求服务时，只需传送请求方法和路径。
+* 灵活:HTTP允许传输任意类型的数据对象
+* 无连接
+* 无状态
  
 Request Headers和Response Headers
 -----------------------------------
- 
  ![常用HTTP响应头和请求头信息对照表](http://tools.jb51.net/table/http_header)
  
  ![image](https://github.com/shishengjia/Android-NetworkArchitecture-Design/blob/master/Headers.jpg)
@@ -141,7 +133,19 @@ public class testOKHttp {
 同步请求:线程ID都为1，表示此时只有一个线程。<br>
 异步请求:一个线程ID为1，另一个线程ID为12，表示此时有两个线程。<br>
 
-
-
 Http缓存机制
 ------------
+缓存图解<br>
+![缓存图解](https://github.com/shishengjia/Android-NetworkArchitecture-Design/blob/master/Http%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6.png)
+
+缓存相关字段
+ 
+ * Expires(Htttp1.0)指示相应内容过期的时间，格林威治时间GMT ，是绝对时间，所以客户端与服务端的时间可能会有偏差
+ * Cache-Control(Http1.0)指定一段时间后过期，解决Expires的不足
+ * Last-Modified记录最后修改数据的时间，服务端和客户端相比较来判断缓存是否过期
+ * ETag将服务端和客户端的内容做编码处理分别生成一个加密值，比较是否相同来判断是否需要重新加载数据
+ * Date返回服务端的时间
+ * if-Modified-Since客户端存取的该资源最后一次修改的时间，同Last-Modified
+ * if-None-Match同ETag
+ 
+ 
