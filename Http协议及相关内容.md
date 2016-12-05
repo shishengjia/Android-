@@ -1,8 +1,15 @@
 #Http协议
-超文本传输协议（HyperText Transfer Protocol)是互联网上应用最为广泛的一种网络协议。
+####超文本传输协议（HyperText Transfer Protocol)是互联网上应用最为广泛的一种网络协议。
 
-
-**Http版本区别**
+##目录
+ * [Http版本区别](#Http版本区别)
+ * [Http请求方式](#Http请求方式)
+ * [Http协议特点](#Http协议特点)
+ * [Http同步请求和异步请求](#Http同步请求和异步请求)
+ * [Http缓存机制](#Http缓存机制)
+ 
+Http版本区别
+---------------
  * 1.1
   * 默认持久连接
   * 支持缓存
@@ -15,19 +22,22 @@
   * 对请求划分优先级
   * 服务器推送流(Server Push)
 
-**Http请求方式**
+Http请求方式
+--------------
  * Get:请求获取Requeat-URI所标识得资源
  * POST:在Request-URI所标识得资源后附加新的数据
  * HEAD,PUT,DELETE,TRACE,CONNECT,OPTIONS
  
-**Http协议特点**
+Http协议特点
+--------------
  * 支持C/S模式
  * 简单快速:客户向服务器请求服务时，只需传送请求方法和路径。
  * 灵活:HTTP允许传输任意类型的数据对象
  * 无连接
  * 无状态
  
-**Request Headers和Response Headers**
+Request Headers和Response Headers
+-----------------------------------
  
  ![常用HTTP响应头和请求头信息对照表](http://tools.jb51.net/table/http_header)
  
@@ -65,7 +75,8 @@
  ```
  这个示例中通过addHeader()方法可以自定义请求头
  
-**Http同步请求和异步请求**
+Http同步请求和异步请求
+--------------------------
  
 同步——使用者通过单个线程调用服务；该线程发送请求，在服务运行时阻塞，并且等待响应。<br>
 异步——使用者通过两个线程调用服务；一个线程发送请求，而另一个单独的线程接收响应。<br>
@@ -131,3 +142,6 @@ public class testOKHttp {
 异步请求:一个线程ID为1，另一个线程ID为12，表示此时有两个线程。<br>
 
 
+
+Http缓存机制
+------------
