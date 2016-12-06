@@ -149,3 +149,30 @@ Http缓存机制
  * if-None-Match同ETag
  
  
+Http中与下载有关的几个字段
+----------------------------
+ * Transfer-Encoding:chunked 表明传输方式是一段一段的发出，像一般网站的主页会这样设置，因为不知道文件大小，所以无法通过多线程来下载
+ * Content-Length 一般静态文件如图片，静态js文件等会在Response Headers中指示，标明文件长度
+ * Range 在request中指定，表明该次请求所下载文件的长度，从0开始
+```java
+    public static void main(String args[]){
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder().
+                addHeader("Range","bytes=0-2048"). //截取指定长度的内容
+                url("http://t1.zngirls.com/gallery/19705/19815/003.jpg").
+                build();
+        try {
+            Response response = client.newCall(request).execute();
+            //如果响应头没有content-length字段或者content-length=0，则返回-1.
+            System.out.println("content-length: "+response.body().contentLength());
+            if(response.isSuccessful()){
+                Headers headers = response.headers();
+                //打印响应头信息
+                for(int i=0;i<headers.size();i++)
+                    System.out.println(headers.name(i)+" : "+headers.value(i));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+```
