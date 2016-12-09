@@ -49,12 +49,12 @@ t.start();
  * static boolean interrupted() 测设当前线程是否被中断。注意，这是一个静态方法，这一调用会产生副作用----它将当前线程的中断状态重置为false。
  * boolean isInterrupted() 测试线程是否被终止。不像静态的中断方法，这一调用不改变线程的中断状态。
  * static Thread currentThread() 返回代表当前执行线程的Thread对象<br>
+ 
 中断是通过调用Thread.interrupt()方法来做的. 这个方法通过修改了被调用线程的中断状态来告知那个线程, 说它被中断了,但也仅仅只是告诉它而已，并不会终止它。 对于非阻塞中的线程, 只是改变了中断状态, 即Thread.isInterrupted()将返回true,但其本身还是将继续运行; 对于可取消的阻塞状态中的线程, 比如等待在这些函数上的线程, Thread.sleep(), Object.wait(), Thread.join(), 这个线程收到中断信号后, 会抛出InterruptedException, 同时会把中断状态置回为true.但调用Thread.interrupted()会对中断状态进行复位。<br>
 **使用场景**<br>
 在某个子线程中为了等待一些特定条件的到来, 你调用了Thread.sleep(10000), 预期线程睡10秒之后自己醒来, 但是如果这个特定条件提前到来的话, 来通知一个处于Sleep的线程。又比如说.线程通过调用子线程的join方法阻塞自己以等待子线程结束, 但是子线程运行过程中发现自己没办法在短时间内结束, 于是它需要想办法告诉主线程别等我了. 这些情况下, 就需要中断.
 
 ```java
-//对非阻塞中的线程中断
 public class Thread3 extends Thread{
     public void run(){  
         while(true){  
