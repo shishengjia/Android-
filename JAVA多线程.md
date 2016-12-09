@@ -47,7 +47,7 @@ t.start();
 参考JAVA核心技术，[博客](http://blog.csdn.net/wxwzy738/article/details/8516253)<br>
 当线程的`run()`方法执行方法体最后一条语句，并经由return语句返回时，或者出现在方法中没有捕获的异常，线程将终止。（早起版本的`stop()`已被弃用）<br>
  * void interrupt() 向线程发送中断请求。线程的中断状态将被设置为true。如果目前该线程被一个sleep调用阻塞，那么InterruptedException异常将被抛出。
- * static boolean interrupted() 测设当前线程是否被中断。注意，这是一个静态方法，这一调用会产生副作用----它将当前线程的中断状态重置为false。
+ * static boolean interrupted() 测设当前线程是否被中断,返回线程的上次的中断状态。注意，这是一个静态方法，这一调用会产生副作用----它将当前线程的中断状态重置为false。
  * boolean isInterrupted() 测试线程是否被终止。不像静态的中断方法，这一调用不改变线程的中断状态。
  * static Thread currentThread() 返回代表当前执行线程的Thread对象<br>
  
