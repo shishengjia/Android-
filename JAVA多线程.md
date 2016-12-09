@@ -1,5 +1,6 @@
 #目录
   * [什么是线程](#什么是线程)
+  * [中断线程](#中断线程)
   
 什么是线程
 -----------
@@ -41,7 +42,7 @@ t.start();
  * void start() 启动这个线程，将引发调用`run()`方法。这个方法将立即返回，并且新线程将并行运行
  * void run() 调用关联Runnable的`run()`方法
 
-中断（Interrupt）线程
+中断线程
 -----------
 参考JAVA核心技术，[博客](http://blog.csdn.net/wxwzy738/article/details/8516253)<br>
 当线程的`run()`方法执行方法体最后一条语句，并经由return语句返回时，或者出现在方法中没有捕获的异常，线程将终止。（早起版本的`stop()`已被弃用）<br>
@@ -97,31 +98,44 @@ public class Thread3 extends Thread{
 这说明: interrupt中断的是线程的某一部分业务逻辑，前提是线程需要检查自己的中断状态(isInterrupted())。<br>
 **下面是使用共享变量来真正中断（停止）一个线程-----非阻塞线程**
 ```java
-class MyThread extends Thread {
-	volatile boolean stop = false;
+class Test2 {
+	volatile static boolean stop = false;
 
-	public static void main(String args[]) throws Exception {
-		MyThread thread = new MyThread();
+	public static void main(String args[]) {
+		Runnable runnable = new Runnable() {
+
+			@Override
+			public void run() {
+				while (!stop) {
+					System.out.println("Thread is running...");
+					long time = System.currentTimeMillis();
+					while ((System.currentTimeMillis() - time < 1000) && (!stop)) {
+					}
+				}
+				System.out.println("Thread exiting under request...");
+			}
+		};
+
+		Thread thread = new Thread(runnable);
 		System.out.println("Starting thread...");
 		thread.start();
-		Thread.sleep(3000);
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		System.out.println("Asking thread to stop...");
 
-		thread.stop = true;
-		Thread.sleep(3000);
+		stop = true;
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		System.out.println("Stopping application...");
-		// System.exit( 0 );
 	}
 
-	public void run() {
-		while (!stop) {
-			System.out.println("Thread is running...");
-			long time = System.currentTimeMillis();
-			while ((System.currentTimeMillis() - time < 1000) && (!stop)) {
-			}
-		}
-		System.out.println("Thread exiting under request...");
-	}
+}
 	//	Starting thread...
 //	Thread is running...
 //	Thread is running...
@@ -134,7 +148,8 @@ class MyThread extends Thread {
 
 ```
 
-**下面是使用共享变量来真正中断（停止）一个线程-----阻塞线程**
+**下面是使用共享变量来真正中断（停止）一个线程-----阻塞线程**<br>
+这里通过构建一个Thread类的子类定义一个线程，不过这种方法已不推荐，推荐使用上面一段代码的Runnable来实现
 ```java
 class Example3 extends Thread {  
   volatile boolean stop = false;  
