@@ -7,7 +7,10 @@
 	* [银行转账的例子](#银行转账的例子)
 	* [锁对象](#锁对象)
 	* [条件对象](#条件对象)
-
+	* [总结锁和条件的关键之处](#总结锁和条件的关键之处)
+	* [synchronized关键字](#synchronized关键字)
+	* [同步阻塞](#同步阻塞)
+	
 什么是线程
 -----------
 下面是一个没有使用多线程的程序，点击start可以开始运行程序，但是点击close将无法停止程序，其他任务（如close方法）都将被阻塞，直到
@@ -512,7 +515,6 @@ public class Bank {
 		//上锁
 		bankLock.lock();
 		try {
-			// 转账账户余额小于转账金额，直接返回
 			while(accounts[from]<amount)
 				sufficientFunds.await();
 			System.out.print(Thread.currentThread());
@@ -525,7 +527,6 @@ public class Bank {
 			//解锁
 			bankLock.unlock();
 		}
-
 	}
 
 	/**
@@ -564,6 +565,81 @@ public class Bank {
 }
 
  ```
+总结锁和条件的关键之处
+---------------------
+* 锁用来保护代码片段，任何时刻只能有一个线程执行被保护的代码
+* 锁可以管理试图进入被保护代码段的线程
+* 锁可以拥有一个或多个相关的条件对象
+* 每个条件对象管理哪些已经进入被保护代码但还不能运行的线程方法
+
+synchronized关键字
+------------------
+从1.0版开始，java中每一个对象都有一个内部锁，如果一个方法用synchronized关键字声明，那对象的锁将保护整个方法，也就是说要调用该方法，线程必须获得内部的对象锁。<br>
+内部对象锁只有一个相关条件。wait方法添加一个线程到等待集中，notifyAll/notify方法解除等待线程的阻塞状态。即：<br>
+* intrinsicCondition.await() == wait()
+* intrinsicCondition.signalAll() == notifyAll()
+
+所以Bank类的transfer和getTotalBalance方法可以这样实现
+```java
+public synchronized void transfer(int from, int to, double amount) throws InterruptedException {
+		//上锁
+		bankLock.lock();
+		try {
+			while(accounts[from]<amount)
+				await();
+			System.out.print(Thread.currentThread());
+			accounts[from] -= amount;
+			System.out.printf("%10.2f from %d to %d", amount, from, to);
+			accounts[to] += amount;
+			System.out.printf("Total Balance: %10.2f  \n", getTotalBalance());
+        		notifyAll();
+		}
+	}
+//getTotalBalance方法并没有使用条件对象，所以代码和最初版本一样就行
+private double getTotalBalance() {
+		double sum = 0;
+		for (int i = 0; i < accounts.length; i++)
+			sum += accounts[i];
+		return sum;
+	}
+
+```
+当然，将静态方法声明为synchronized也是合法的。<br>
+**内部锁和条件的局限**<br>
+* 不能中断一个正在试图获得锁的线程
+* 试图获得锁时不能设定超时
+* 每个锁仅有单一的条件，可能是不够的<br>
+所以，最好既不使用Lock/Condition也不使用synchronized关键字。在许多情况下可以使用java.util.concurrent包中的一种机制，它会处理所有的加锁。当然，如果synchronized适合程序，那么可以尽量使用它。如这个银行转账程序。Lock/Condition结构比较独特，在需要使用它的这种独特性时才使用。<br>
+
+
+同步阻塞
+----------
+每一个java对象都有一个锁。线程可以通过调用同步方法获得锁。当然也可以通过进入一个同步阻塞来获得锁。<br>
+```java
+synchronized(obj){
+	....
+}
+```
+ 于是它获得obj的锁<br>
+ 对于Bank类的transfer方法
+ ```java
+ private Object lock = new Object();
+ pubic void transfer(int from,int to,int amount){
+ 	synchronized(lock){
+		...
+	}
+ }
+ ```
  
- 
+ 有时程序员使用一个对象的锁来实现额外的原子操作，实际上称为客户端锁定.例如，Vector类。现在假定在Vector<Double>中存储银行余额
+ ```java
+ public void transfer(Vector<Double> accounts,int form,int to,int amount){
+ 	synchronized(accounts){
+		acccounts.set(from,accounts.get(from) - amount);
+		accounts.set(to,accounts.get(to) + amount);
+	}
+ }
+ ```
+ 这个方法可以工作，但完全依赖于一个事实，即Vector类对自己的所有可修改方法都使用内部锁。然而Vector类的文档并没有给出这样的承诺。所以客户端锁定是非常
+ 脆弱的，通常不推荐使用。
  
