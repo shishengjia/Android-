@@ -631,7 +631,7 @@ synchronized(obj){
  }
  ```
  
- 有时程序员使用一个对象的锁来实现额外的原子操作，实际上称为客户端锁定.例如，Vector类。现在假定在Vector<Double>中存储银行余额
+ 当程序员使用一个对象的锁来实现额外的原子操作，实际上称为客户端锁定.例如，Vector类。现在假定在Vector<Double>中存储银行余额
  ```java
  public void transfer(Vector<Double> accounts,int form,int to,int amount){
  	synchronized(accounts){
