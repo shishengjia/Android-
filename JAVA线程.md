@@ -643,3 +643,100 @@ synchronized(obj){
  这个方法可以工作，但完全依赖于一个事实，即Vector类对自己的所有可修改方法都使用内部锁。然而Vector类的文档并没有给出这样的承诺。所以客户端锁定是非常
  脆弱的，通常不推荐使用。
  
+ Volatile域
+ -------------
+ 同步格言：如果向一个变量写入值，而这个变量接下来可能会被另一个线程读取，或者，从一个变量读值，而这个变量可能之前被另外一个线程写入的，此时必须使用同步。<br>
+ 假定一个对象有一个布尔标记done，它的值被一个线程设置却被另一个线程查询，此时可以将域声明为volatile
+ ```java
+ private volatile boolen done;
+ public boolean is Done(){return done;}
+ public void setDone(){done = true;}
+ ```
+ 需要注意的是volatile变量不能提提供原子性
+ ```java
+ public void flipDone(){done = !done;}
+ ```
+ 该方法不能确保翻转域中的值。
+ 
+ 原子性
+ --------
+ 假设对共享变量除了赋值之外不完成其他操作，那么可以将这些共享变量声明为volatile。<br>
+ 例如AtomciInteger类的incrementAndGe和decrementAndGet，它们分别以原子方式将一个整数自增或自减。
+ 
+ 死锁
+ -----
+ 锁和条件不能解决多线程中的所有问题。例如<br>
+ 账户1:200<br>
+ 账户2:300<br>
+ 线程1：从账户1转移300到账户2<br>
+ 线程2：从账户2转移400到账户1<br>
+ 线程1和线程2都被阻塞了，因为账户1及账户2中的余额都不足以进行转账。但是上面的那个例子不会出现死锁，因为限定了每次转账最多1000，而100个账户总金额是10000，在任意时刻，至少有一个账户的余额高于1000.所以，将每次转账最多1000的限制去掉，死锁就会很快发生。<br>
+ 另外一种很容易导致死锁的方式就是将Bank例子中的signalAll方法转换为signal，程序最终也会发生死锁，因为signal方法仅仅对一个线程解锁，如果被解锁的那个线程不能继续运行，所有的线程可能都被阻塞。
+ 
+ 线程局部变量
+ -------------
+ 使用ThreadLocal辅助类为各个线程提供各自的实例。例如SimpleDateFormat类不是线程安全的。因为该类实例使用的内部数据结构可能会被并发的访问锁破环。当然可以使用同步，但是开销很大。所以为每个线程构造一个实例，可以这样
+ ```java
+ public static final ThreadLocal<SimpleDateFromat> dateFormat = 
+ 	new ThreadLocal<SimpleDateFormat>()
+	{
+		protected SimpleDateFormat initialValue(){
+			return new SimpleDateFormat("yyyy-MM-dd");
+		}
+	};
+String dateStamp = dateFormat.get().format(new Date());
+ ```
+ 在多线程中生成随机数也有类似问题，Random类是线程安全的，但是如果多个线程需要等待一个共享的随机数生成器，这会是很低效的。可以使用上述方法，当然也可以这样。
+ ```java
+ int random = ThreadLocalRandom.current().nextInt(upperBound);
+ ```
+ ThreadLocalRandom.current()调用会返回特定于当前线程的Random类实例。<br>
+ 	* T get() 
+	* protected initialize()
+	* void set(T t)
+	* void remove()
+	* static ThreadLocalRandom current()
+ 
+ 锁测试与超时
+ ---------------
+ tryLock方法试图申请一个锁，在成功后获得锁后返回true，否则立即返回false，线程可以立即离开去做其他事情。
+ ```java
+ if(myLock.tryLock()){
+ 	try{...}
+	finally{myLock.unlock();}
+ }
+ ```
+ 调用tryLock时，使用超时参数
+ ```java
+ if( myLock.tryLock(100,TimeUnit.MILLISECONDS))...
+ ```
+ lock方法不能被中断，如果一个线程在等待获得一个锁时被中断，中断线程在获得锁之前一直处于阻塞状态。如果出现死锁，那么lock方法就无法终止。然而，如果调用带有超时参数的tryLock，那么如果线程在等待期间被中断，将抛出InterruptedException异常。
+ 
+ 读写锁
+ ----------
+ 如果很多线程从一个数据结构读取数据而很少线程修改其中数据，那么ReentrantReadWriteLock类是十分有用的。
+ ```java
+ //构造一个ReentrantReadWriteLock对象
+ private ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
+ //抽取读锁和写锁
+ private Lock readLock = rwl.readLock();
+ private Lock writeLock = rwl.writeLock();
+
+//对所有的获取方法加读锁
+public doubel getTotalBalance(){
+	readLock.lock();
+	try{...}
+	finally{readLock.unlock();}
+}
+
+//对所有的修改方法加写锁
+public void transfer(){
+	writeLock.lock();
+	try{...}
+	finally{writeLock.unlock();}
+}
+ ```
+ **读锁可以被多个读操作共用，但会排斥所有写操作<br>**
+ **写锁排斥所有其他的读操作和写操作<nbr>**
+ 
+ 
